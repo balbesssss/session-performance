@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система успеваемости</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Блок логина -->
+        <div id="loginSection" class="section">
+            <h2>Вход в систему</h2>
+            <div class="form-group">
+                <input type="text" id="username" placeholder="Логин" class="form-input" value="Дарина">
+                <input type="password" id="password" placeholder="Пароль" class="form-input" value="123">
+                <button id="loginBtn" class="btn btn-primary">Войти</button>
+            </div>
+        </div>
+
+        <!-- Блок после входа -->
+        <div id="mainSection" class="section" style="display: none;">
+            <div class="header">
+                <h2>Добро пожаловать, <span id="userName"></span>!</h2>
+                <button id="logoutBtn" class="btn btn-secondary">Выйти</button>
+            </div>
+
+            <!-- Навигация -->
+            <div class="nav">
+                <button id="profileBtn" class="btn nav-btn">Мой профиль</button>
+                <button id="gradesBtn" class="btn nav-btn">Мои оценки</button>
+                <button id="teacherBtn" class="btn nav-btn" style="display: none;">Для преподавателей</button>
+            </div>
+
+            <!-- Секции -->
+            <div id="profileSection" class="content-section">
+                <h3>Информация о пользователе</h3>
+                <div id="profileInfo"></div>
+            </div>
+
+            <div id="gradesSection" class="content-section" style="display: none;">
+                <h3>Мои оценки</h3>
+                <div id="gradesList"></div>
+            </div>
+
+            <div id="teacherSection" class="content-section" style="display: none;">
+                <h3>Панель преподавателя</h3>
+                <div>
+                    <input type="text" id="groupName" placeholder="Название группы" class="form-input" value="1-1Р9">
+                    <button id="loadGroupGradesBtn" class="btn btn-primary">Загрузить оценки группы</button>
+                </div>
+                <div id="teacherContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
