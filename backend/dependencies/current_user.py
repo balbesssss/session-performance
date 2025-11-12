@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi import Depends
-from auth_utils import verify_jwt_token
+from backend.dependencies.auth_utils import verify_jwt_token
 from database.db import User
 from fastapi.security import OAuth2PasswordBearer
 

@@ -5,7 +5,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from models import *
 from database.db import User, Role, db, Disciplines, Group, Grade, StudentProfile, SessionPeriod, Teacher, Admin
-from auth_utils import create_jwt_token
+from backend.dependencies.auth_utils import create_jwt_token
 from config import settings
 from dependencies.current_user import get_current_active_user
 
