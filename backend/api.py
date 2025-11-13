@@ -12,24 +12,29 @@ from dependencies.current_user import get_current_user
 app = FastAPI()
 
 
-@app.post("/register/",tags=["system"])
+@app.post("/register/", tags=["system"])
 async def create_user(user: UserRegister):
-    try:
-        with db:
-            student_role = Role.get(Role.name == 'Студент')
+    with db.atomic():
+        student_role = Role.get(Role.name == 'Студент')
+        try:
+            get_user = User.get(
+                (User.last_name == user.last_name) &
+                (User.first_name == user.first_name) &
+                (User.middle_name == user.middle_name) &
+                (User.role == student_role)
+            )
+            return {"message": "Пользователь уже есть в базе данных"}
+        except User.DoesNotExist:
             new_user = User(
-                username=user.name,
-                role=student_role)
+                last_name=user.last_name,
+                first_name=user.first_name,
+                middle_name=user.middle_name,
+                role=student_role
+            )
             new_user.set_password(user.password)
             new_user.save()
             return {"message": "Пользователь успешно создан"}
-    except peewee.IntegrityError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail="Имя пользователя уже занято"
-        ) from exc
-
-
+                
 
 @app.post("/add_teacher/", response_model=Dict[str, str], tags=["Админ"])
 async def add_teacher(teacher: TeacherInfo, current_user: Annotated[User, Depends(get_current_user)]) -> Dict[str, str]:
@@ -42,7 +47,9 @@ async def add_teacher(teacher: TeacherInfo, current_user: Annotated[User, Depend
                 )
             teacher_role = Role.get(Role.name == "Преподаватель")
             new_user = User(
-                username=teacher.name,
+                last_name=teacher.last_name,
+                first_name=teacher.first_name,
+                middle_name=teacher.middle_name,
                 role=teacher_role
             )
             new_user.set_password(teacher.password)
@@ -80,7 +87,6 @@ async def create_group(current_user: Annotated[User, Depends(get_current_user)],
         ) from exc
 
 
-
 @app.post("/create-studentprofile/", tags=["Админ"])
 async def create_studentprofile(current_user: Annotated[User, Depends(get_current_user)], student_profile: StudentprofileCreate):
     try:
@@ -92,11 +98,15 @@ async def create_studentprofile(current_user: Annotated[User, Depends(get_curren
                 )
             
             try:
-                student = User.get(User.username == student_profile.username)
+                student = User.get(
+                    (User.last_name == student_profile.last_name) &
+                    (User.first_name == student_profile.first_name) & 
+                    (User.middle_name == student_profile.middle_name)
+                )
             except User.DoesNotExist:
                 raise HTTPException(
                     status_code=404,
-                    detail=f"Студент с именем {student_profile.username} не найден"
+                    detail=f"Студент не найден"
                 )
             
             try:
@@ -113,7 +123,7 @@ async def create_studentprofile(current_user: Annotated[User, Depends(get_curren
                     detail="Пользователь не является студентом"
                 )
             
-            StudentProfile.create(user=student,group=group, full_name=student_profile.full_name)
+            StudentProfile.create(user=student,group=group)
             return {"message":"Профиль студента успешно создан"}
     except peewee.IntegrityError as exc:
         raise HTTPException(status_code=400,
@@ -163,7 +173,13 @@ async def put_grade(current_user: Annotated[User,Depends(get_current_user)],grad
     with db:
         if current_user.role.name == "Преподаватель":
             try:
-                student = StudentProfile.get(StudentProfile.full_name == grade_put.student_full_name)
+                user = User.get(
+                    (User.last_name == grade_put.last_name)&
+                    (User.first_name == grade_put.first_name)&
+                    (User.middle_name == grade_put.middle_name)
+                    )
+                
+                student = StudentProfile.get(StudentProfile.user == user)
                 discipline = Disciplines.get(Disciplines.name == grade_put.discipline)
                 session = SessionPeriod.get(SessionPeriod.name_session == grade_put.session)
                 teacher = Teacher.get(
@@ -186,17 +202,23 @@ async def put_grade(current_user: Annotated[User,Depends(get_current_user)],grad
             if not created:
                 grade.grade = grade_put.grade
                 grade.teacher = teacher.user
+                grade.created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 grade.save()
             return {
-                "message": "Оценка создана" if created else "Оценка обновлена",
-                "student": student.full_name,
+               "message": "Оценка создана" if created else "Оценка обновлена",
+                "student": f"{student.user.last_name} {student.user.first_name} {student.user.middle_name}",
                 "discipline": discipline.name, 
                 "grade": grade_put.grade
                 }
    
         elif current_user.role.name == "Сотрудник учебного отдела":
             try:
-                student = StudentProfile.get(StudentProfile.full_name == grade_put.student_full_name)
+                user = User.get(
+                    (User.last_name == grade_put.last_name)&
+                    (User.first_name == grade_put.first_name)&
+                    (User.middle_name == grade_put.middle_name)
+                    )
+                student = StudentProfile.get(StudentProfile.user == user)
                 discipline = Disciplines.get(Disciplines.name == grade_put.discipline)
                 session = SessionPeriod.get(SessionPeriod.name_session == grade_put.session)
                 admin = Admin.get(Admin.name == current_user)
@@ -218,13 +240,14 @@ async def put_grade(current_user: Annotated[User,Depends(get_current_user)],grad
             if not created:
                 grade.grade = grade_put.grade
                 grade.teacher = admin.name
+                grade.created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 grade.save()
-                return {
-                   "message": "Оценка создана" if created else "Оценка обновлена",
-                    "student": student.full_name,
-                    "discipline": discipline.name, 
-                    "grade": grade_put.grade
-                    }
+            return {
+                "message": "Оценка создана" if created else "Оценка обновлена",
+                "student": f"{student.user.last_name} {student.user.first_name} {student.user.middle_name}",
+                "discipline": discipline.name, 
+                "grade": grade_put.grade
+                }
             
         else:
             raise HTTPException(
@@ -246,15 +269,15 @@ async def grades_all_group(current_user: Annotated[User, Depends(get_current_use
                 student_grades["Информация"] = []
                 for student in students:
                     grades = Grade.select().where(Grade.student == student)
-                    indo_student = dict()
-                    indo_student["Студент"] = student.full_name
-                    indo_student["Оценки"] = []
+                    info_student = dict()
+                    info_student["Студент"] = f"{student.user.last_name} {student.user.first_name} {student.user.middle_name}"
+                    info_student["Оценки"] = []
                     for grade in grades:
                         grade_student = dict()
                         grade_student["Дисциплина"] = grade.discipline.name
                         grade_student["Оценка"] = grade.grade
-                        indo_student["Оценки"].append(grade_student)
-                    student_grades["Информация"].append(indo_student)
+                        info_student["Оценки"].append(grade_student)
+                    student_grades["Информация"].append(info_student)
                 answer.append(student_grades)
             return answer
 
@@ -284,17 +307,17 @@ async def grade_group(current_user: Annotated[User,Depends(get_current_user)], g
         answer = []
         for student in students:
             grades = Grade.select().where(Grade.student == student)
-            indo_student = dict()
-            indo_student["Студент"] = student.full_name
-            indo_student["Оценки"] = []
+            info_student = dict()
+            info_student["Студент"] = f"{student.user.last_name} {student.user.first_name} {student.user.middle_name}"
+            info_student["Оценки"] = []
             for grade in grades:
                 grade_student = dict()
                 grade_student["Дисциплина"] = grade.discipline.name
                 grade_student["Оценка"] = grade.grade
-                grade_student["Преподаватель"] = grade.teacher.username
+                grade_student["Преподаватель"] = f"{grade.teacher.last_name} {grade.teacher.first_name} {grade.teacher.middle_name}"
                 grade_student["Дата"] = grade.created_at
-                indo_student["Оценки"].append(grade_student)
-            answer.append(indo_student)
+                info_student["Оценки"].append(grade_student)
+            answer.append(info_student)
         return answer
 
 
@@ -310,13 +333,14 @@ async def delete_discipline(current_user: Annotated[User,Depends(get_current_use
             return {"message":f"{discipline} была успешно удалена"}
 
 
-
 @app.get("/teacher/grades/{group_name}",tags=["Учитель"])
 async def grade_group(current_user: Annotated[User,Depends(get_current_user)],group_name: str):
     with db:
         if current_user.role.name == "Преподаватель":
             disciplines_teacher = []
-            disciplines = Teacher.select().join(User).where(User.username == current_user.username)
+            disciplines = Teacher.select().join(User).where((User.last_name == current_user.last_name) &
+                    (User.first_name == current_user.first_name) & 
+                    (User.middle_name == current_user.middle_name))
             for i in disciplines:
                 disciplines_teacher.append(i.discipline.name)
             if not disciplines_teacher:
@@ -336,10 +360,9 @@ async def grade_group(current_user: Annotated[User,Depends(get_current_user)],gr
             for discipline_name in disciplines_teacher:
                 discipline = Disciplines.get(Disciplines.name == discipline_name)
                 all_student_grades = Grade.select().join(Disciplines).switch(Grade).join(StudentProfile, on=Grade.student).join(Group).where((Disciplines.name == discipline_name) & (Group.name == group_name))
-                    
                 for i in all_student_grades:
                     ans = dict()
-                    ans["Студент"] = i.student.full_name
+                    ans["Студент"] = f"{i.student.user.last_name} {i.student.user.first_name} {i.student.user.middle_name}",
                     ans["Оценка"] = i.grade
                     ans["Дата"] = i.created_at
                     answer.append(ans)
@@ -407,7 +430,15 @@ async def put_mass_grades_group(current_user: Annotated[User,Depends(get_current
             
         for i in range(len(mpg.students)):
             try:
-                student_name = StudentProfile.get(StudentProfile.full_name == mpg.students[i])
+                last_name,first_name,middle_name = mpg.students[i].split(" ")
+
+                user = User.get(
+                    (User.last_name == last_name) &
+                    (User.first_name == first_name) &
+                    (User.middle_name == middle_name)
+                    )
+                
+                student_name = StudentProfile.get(StudentProfile.user == user)
                 grade_student = mpg.grades[i]
                 stud_grade, created = Grade.get_or_create(
                 student=student_name,
@@ -415,12 +446,13 @@ async def put_mass_grades_group(current_user: Annotated[User,Depends(get_current
                 session=current_session,
                 )
                 if not created:
-                    stud_grade.grade=grade_student
-                    stud_grade.teacher=current_user
+                    stud_grade.grade = grade_student
+                    stud_grade.teacher = current_user
+                    stud_grade.created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     stud_grade.save()
 
                 for_answer = dict()
-                for_answer["Студент"] = student_name.full_name
+                for_answer["Студент"] = f"{student_name.user.last_name} {student_name.user.first_name} {student_name.user.middle_name}"
                 for_answer["Оценка"] = grade_student  
                 for_answer["Дисциплина"] = discipline.name
                 for_answer["Сессия"] = current_session.name_session
@@ -463,7 +495,7 @@ async def get_grades(current_user: Annotated[User,Depends(get_current_user)]):
             info = dict()
             info["Дисциплина"] = grade.discipline.name
             info["Оценка"] = grade.grade
-            info["Учитель"] = grade.teacher.username
+            info["Учитель"] = f"{grade.teacher.last_name} {grade.teacher.first_name} {grade.teacher.middle_name}"
             info["Дата оценки"] = grade.created_at
             answer.append(info)
         return answer
@@ -472,15 +504,23 @@ async def get_grades(current_user: Annotated[User,Depends(get_current_user)]):
 @app.post("/token", response_model=Token, tags=["system"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     try:
-        user = User.get(User.username == form_data.username)
-        if not user or not user.check_password(form_data.password):
-            raise HTTPException(status_code=401, detail="Ошибка! пользователя нет/пароль не совпадает")
+        parts = form_data.username.split(' ')
+        if len(parts) != 3:
+            raise HTTPException(status_code=401, detail="Неверный формат имени")
         
-        token = await create_jwt_token(
-            data={"sub": user.username}, 
-            expires_minutes=settings.access_token_expire_minutes
+        last_name, first_name, middle_name = parts
+        user = User.get(
+            (User.last_name == last_name) &
+            (User.first_name == first_name) & 
+            (User.middle_name == middle_name)
         )
+        
+        if not user.check_password(form_data.password):
+            raise HTTPException(status_code=401, detail="Неверное имя пользователя или пароль")
+        
+        token = await create_jwt_token(data={"user_id": user.id}, expires_minutes=settings.access_token_expire_minutes)
         return Token(access_token=token, token_type="bearer")
+        
     except User.DoesNotExist:
         raise HTTPException(status_code=401, detail="Пользователя нет в базе данных")
 
@@ -491,11 +531,11 @@ async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]
         if current_user.role.name == "Студент":
             try:
                 group = StudentProfile.get(StudentProfile.user == current_user)
-                return InfoStudentResponse(name=current_user.username, password="********", role=current_user.role.name,group=group.group.name)
+                return InfoStudentResponse(name=current_user.full_name, password="********", role=current_user.role.name,group=group.group.name)
             except StudentProfile.DoesNotExist:
                 raise HTTPException(
                     status_code=404,
                     detail="Профиль студента не найден"
                 )
         else:
-            return UserInfo(name=current_user.username,password="********", role=current_user.role.name)
+            return UserInfo(name=current_user.full_name,password="********", role=current_user.role.name)

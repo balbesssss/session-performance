@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Annotated
 
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -12,12 +13,18 @@ class TokenData(BaseModel):
 
 
 class TeacherInfo(BaseModel):
-    name: str
+    last_name: str
+    first_name: str
+    middle_name: str
     password: str
 
+
 class UserRegister(BaseModel):
-    name: str
+    last_name: str
+    first_name: str
+    middle_name: str
     password: str
+
 
 class UserInfo(BaseModel):
     name: str
@@ -28,18 +35,25 @@ class UserInfo(BaseModel):
 class InfoStudentResponse(UserInfo):
     group: str
 
+
 class StudentprofileCreate(BaseModel):
-    username: str
+    last_name: str
+    first_name: str
+    middle_name: str
     group: str
-    full_name: str
+
 
 class GradePutRequest(BaseModel):
-    student_full_name: str
+    last_name: str
+    first_name: str
+    middle_name: str
     discipline: str
     session: str
-    grade: int = Field(..., gt=0,le=2)
+    grade: int = Field(..., gt=0,le=5)
+
 
 Grade = Annotated[int, Field(..., ge=2, le=5)]
+
 
 class MassPutGrades(BaseModel):
     group_name : str
