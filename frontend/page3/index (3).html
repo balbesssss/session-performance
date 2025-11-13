@@ -1,61 +1,32 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta charset="utf-8" />
+<head>
     <title>Вход</title>
-    <link rel="stylesheet" href="globals.css" />
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <main class="frame">
-      <h1 class="text-wrapper">Вход</h1>
-      <form class="view" method="post" action="#" novalidate>
-        <div class="div">
-          <label for="surname" class="text-wrapper-2">Фамилия:</label>
-          <input
-            type="text"
-            id="surname"
-            name="surname"
-            class="rectangle-2"
-            autocomplete="family-name"
-            required
-            aria-required="true"
-          />
-        </div>
-        <div class="view-2">
-          <label for="name" class="text-wrapper-3">Имя:</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            class="rectangle-4"
-            autocomplete="given-name"
-            required
-            aria-required="true"
-          />
-        </div>
-        <div class="view-3">
-          <label for="password" class="text-wrapper-2">Пароль:</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            class="rectangle-2"
-            autocomplete="current-password"
-            required
-            aria-required="true"
-          />
-        </div>
-      </form>
-      <div class="component">
-        <div class="view-4">
-          <button type="submit" class="text-wrapper-4" aria-label="Войти в систему">Войти</button>
-        </div>
-        <div class="view-5">
-          <button type="button" class="text-wrapper-4" aria-label="Выйти из системы">Выйти</button>
-        </div>
+    <link rel="stylesheet" href="style (3).css">
+</head>
+<body>
+  <div class="container">
+    <h1>Вход</h1>
+    <div class="login-form">
+      <table class="form-table">
+        <tr>
+          <td>Фамилия:</td>
+          <td><input type="text"></td>
+        </tr>
+        <tr>
+          <td>Имя:</td>
+          <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td>Пароль:</td>
+            <td><input type="password"></td>
+        </tr>
+      </table>
+      <div class="buttons">
+        <button class="btn btn-login">Войти</button>
+        <button class="btn">Выйти</button>
       </div>
-    </main>
-  </body>
+    </div>
+  </div>
+</body>
 </html>
