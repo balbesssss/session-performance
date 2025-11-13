@@ -1,7 +1,7 @@
 body {
     margin: 0;
     padding: 20px;
-    background: white;
+    background: #00D0FF;
     color: #000000;}
 
 .container {
@@ -26,45 +26,27 @@ h1 {
 .group-item {
     flex: 1;
     padding: 15px 10px;
-    border: 1px solid #ccc;
-    background: white;
-    text-align: center;
-    cursor: pointer;
-    transition: background-color 0.3s;}
-.group-item:hover {
-    background-color: #f5f5f5;}
+    border: 2px solid #004FF9;
+    background: #CEEBFF;
+    text-align: center;}
 .empty {
-    border: none;
-    background: transparent;
-    cursor: default;}
+    border: none;}
 
-.empty:hover {
-    background: transparent;}
-
-.button-container {
+.buttons {
     display: flex;
     justify-content: center;
+    gap: 15px;
     margin-top: 30px;}
-
+      
 .btn {
-    padding: 12px 30px;
-    border: 1px solid #ccc;
-    background: white;
-    cursor: pointer;
-    font-size: 1rem;
-    border-radius: 4px;
+    padding: 15px 3px;
+    border: 3px solid #004FF9;
+    background: #87CDFF;
     min-width: 150px;}
-
-.btn:hover {
-    background-color: #f5f5f5;}
-
-.btn-exit {
-    background: #f44336;
-    color: white;
-    border: 1px solid #d32f2f;}
-
-.btn-exit:hover {
-    background: #d32f2f;}
+        
+.btn {
+    width: 100%;
+    max-width: 200px;}
 
 @media (max-width: 768px) {
     .group-row {
@@ -74,7 +56,3 @@ h1 {
         min-width: 100px;}
     .container {
         padding: 10px;}}
-
-@media (max-width: 480px) {
-    .group-item {
-        flex: 0 0 calc(50% - 10px);}}
