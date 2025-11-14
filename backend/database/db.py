@@ -15,7 +15,9 @@ class Role(BaseModel):
 
 
 class User(BaseModel):
-    username = peewee.CharField(unique=True)
+    last_name = peewee.CharField()
+    first_name = peewee.CharField()
+    middle_name = peewee.CharField()
     password_hash = peewee.CharField()
     role = peewee.ForeignKeyField(Role)
 
@@ -50,11 +52,10 @@ class Group(BaseModel):
     name = peewee.CharField(unique=True)
 
 
-class StudentProfile(BaseModel):
+class Student(BaseModel):
     user = peewee.ForeignKeyField(User, unique=True)
     group = peewee.ForeignKeyField(Group)
-    full_name = peewee.CharField()
-
+    
 
 class SessionPeriod(BaseModel):
     name_session = peewee.CharField()
@@ -62,21 +63,24 @@ class SessionPeriod(BaseModel):
     end_date = peewee.DateField()
     is_active = peewee.BooleanField(default=False)
 
+
 class Grade(BaseModel):
-    student = peewee.ForeignKeyField(StudentProfile)
+    student = peewee.ForeignKeyField(Student)
     discipline = peewee.ForeignKeyField(Disciplines)
     session = peewee.ForeignKeyField(SessionPeriod)
     grade = peewee.IntegerField(null=True)
     teacher = peewee.ForeignKeyField(User)
     created_at = peewee.DateTimeField(default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
+
 def create_tables():
     DATABASE_PATH.parent.mkdir(exist_ok=True)
     with db:
         db.create_tables([
             Role, User, Disciplines, Group, 
-            StudentProfile, SessionPeriod, Grade,Admin,Teacher
+            Student, SessionPeriod, Grade,Admin,Teacher
         ])
+
 
 def create_test():
     Role.create(name="Студент")
@@ -86,39 +90,39 @@ def create_test():
     student_role = Role.get(Role.name == "Студент")
     teacher_role = Role.get(Role.name == "Преподаватель")
 
-    student1 = User(username="Дарина", role=student_role)
+    student1 = User(last_name="Ухова",first_name="Дарина",middle_name="Олеговна",role=student_role)
     student1.set_password("123")
     student1.save()
     
-    student2 = User(username="Максим", role=student_role)
+    student2 = User(last_name="Смирнов",first_name="Максим",middle_name="Константинович",role=student_role)
     student2.set_password("123")
     student2.save()
     
-    student3 = User(username="Владислав", role=student_role)
+    student3 = User(last_name="Варешков",first_name="Владислав",middle_name="Михайлович",role=student_role)
     student3.set_password("123")
     student3.save()
     
-    student4 = User(username="Кирилл", role=student_role)
+    student4 = User(last_name="Маяков",first_name="Кирилл",middle_name="Миронович",role=student_role)
     student4.set_password("123")
     student4.save()
 
-    student5 = User(username="Абдул", role=student_role)
+    student5 = User(last_name="Дата",first_name="Абдул",middle_name="Аманович",role=student_role)
     student5.set_password("123")
     student5.save()
 
-    student6 = User(username="Денис", role=student_role)
+    student6 = User(last_name="Греков",first_name="Денис",middle_name="Владимирович",role=student_role)
     student6.set_password("123")
     student6.save()
 
-    student7 = User(username="Сергей", role=student_role)
+    student7 = User(last_name="Махолов",first_name="Сергей",middle_name="Генадьевич",role=student_role)
     student7.set_password("123")
     student7.save()
 
-    student8 = User(username="Артем", role=student_role)
+    student8 = User(last_name="Губнов",first_name="Артем",middle_name="Александрович",role=student_role)
     student8.set_password("123")
     student8.save()
 
-    student9 = User(username="Глеб", role=student_role)
+    student9 = User(last_name="Комаров",first_name="Глеб",middle_name="Андреевич",role=student_role)
     student9.set_password("123")
     student9.save()
 
@@ -132,17 +136,17 @@ def create_test():
     russian = Disciplines(name="Русский язык")  
     russian.save()
 
-    teacher_user1 = User(username="Смирнов Павел Леонидович", role=teacher_role)
+    teacher_user1 = User(last_name="Смирнов", first_name="Павел",middle_name="Леонидович", role=teacher_role)
     teacher_user1.set_password("123")
     teacher_user1.save()
     
-    teacher_user2 = User(username="Вавилов Леонид Миронович", role=teacher_role)
+    teacher_user2 = User(last_name="Вавилов", first_name="Леонид",middle_name="Миронович", role=teacher_role)
     teacher_user2.set_password("123")
     teacher_user2.save()
 
     role_admin = Role.get(name="Сотрудник учебного отдела")
 
-    admin_user = User(username="админ",role=role_admin)
+    admin_user = User(last_name="админ",first_name="админ",middle_name="админ",role=role_admin)
     admin_user.set_password("123")
     admin_user.save()
 
@@ -156,15 +160,15 @@ def create_test():
     )
     session.save()
    
-    profile1 = StudentProfile.create(user=student1, group=group1, full_name="Дарина")
-    profile2 = StudentProfile.create(user=student2, group=group1, full_name="Максим") 
-    profile3 = StudentProfile.create(user=student3, group=group1, full_name="Владислав")
-    profile4 = StudentProfile.create(user=student4, group=group1, full_name="Кирилл")
-    profile5 = StudentProfile.create(user=student5, group=group1, full_name="Абдул")
-    profile6 = StudentProfile.create(user=student6, group=group2, full_name="Денис")
-    profile7 = StudentProfile.create(user=student7, group=group2, full_name="Сергей")
-    profile8 = StudentProfile.create(user=student8, group=group2, full_name="Артем")
-    profile9 = StudentProfile.create(user=student9, group=group2, full_name="Глеб")
+    profile1 = Student.create(user=student1, group=group1)
+    profile2 = Student.create(user=student2, group=group1) 
+    profile3 = Student.create(user=student3, group=group1)
+    profile4 = Student.create(user=student4, group=group1)
+    profile5 = Student.create(user=student5, group=group1)
+    profile6 = Student.create(user=student6, group=group2)
+    profile7 = Student.create(user=student7, group=group2)
+    profile8 = Student.create(user=student8, group=group2)
+    profile9 = Student.create(user=student9, group=group2)
     
     Teacher.create(user=teacher_user1, discipline=math)
     Teacher.create(user=teacher_user2, discipline=russian)
