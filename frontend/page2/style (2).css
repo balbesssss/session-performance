@@ -15,7 +15,7 @@ h1 {
   margin-bottom: 20px;}
 
 
-.registration-form {
+.registration {
   padding: 30px;
   border-radius: 8px;
   border: 3px solid #004FF9;}
@@ -54,8 +54,6 @@ h1 {
   border: 3px solid #004FF9;
   background: #87CDFF;
   font-size: 1rem;
-  min-width: 150px;}
-  
-.btn {
+  min-width: 150px;
   width: 100%;
   max-width: 200px;}
