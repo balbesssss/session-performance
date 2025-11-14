@@ -37,7 +37,7 @@ async def create_user(user: UserRegister):
                 
 
 @app.post("/add_teacher/", response_model=Dict[str, str], tags=["Админ"])
-async def add_teacher(teacher: TeacherInfo, current_user: Annotated[User, Depends(get_current_user)]) -> Dict[str, str]:
+async def add_teacher(teacher: TeacherInfo, discipline_name: str, current_user: Annotated[User, Depends(get_current_user)]) -> Dict[str, str]:
     with db:
         if current_user.role.name != "Сотрудник учебного отдела":
             raise HTTPException(
@@ -53,37 +53,24 @@ async def add_teacher(teacher: TeacherInfo, current_user: Annotated[User, Depend
                 (User.role == teacher_role)
             )
             raise HTTPException(status_code=400,detail="Преподаватель уже есть в базе данных")
-        except Teacher.DoesNotExist:
+        except User.DoesNotExist:
+            try:
+                discipline = Disciplines.get(Disciplines.name == discipline_name)
+            except Disciplines.DoesNotExist:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Дисциплина не найдены"
+                )
             new_teacher = User(
                 last_name=teacher.last_name,
-                irst_name=teacher.first_name,
+                first_name=teacher.first_name,
                 middle_name=teacher.middle_name,
                 role=teacher_role
             )
             new_teacher.set_password(teacher.password)
             new_teacher.save()
-            return {"message": "Преподаватель успешно добавлен"}
-
-
-@app.post('/set_discipline/',tags=["Админ"])
-async def set_dicipline(current_user: Annotated[User,Depends(get_current_user)], teachet_info: TeacherOnlyName, discipline_name: str):
-    with db:
-        if current_user.role.name == "Сотрудник учебного отдела":
-            try:
-                user = User.get(
-                    (User.last_name == teachet_info.last_name)&
-                    (User.first_name == teachet_info.first_name)&
-                    (User.middle_name == teachet_info.middle_name)
-                    )
-            
-                discipline = Disciplines.get(Disciplines.name == discipline_name)
-            except (User.DoesNotExist,Disciplines.DoesNotExist):
-                raise HTTPException(
-                    status_code=400,
-                    detail="Учитель или дисциплина не найдены"
-                )
-            Teacher.create(user=user,discipline=discipline)
-            return {'message':f"{user.last_name} {user.first_name} {user.middle_name} теперь преподает {discipline_name}"}
+            Teacher.create(user=new_teacher,discipline=discipline)
+            return {'message':f"{new_teacher.last_name} {new_teacher.first_name} {new_teacher.middle_name} теперь преподает {discipline_name}"}
 
 
 @app.post("/create-group/", tags=["Админ"])
