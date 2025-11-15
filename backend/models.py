@@ -44,6 +44,7 @@ class GradePutRequest(BaseModel):
     last_name: str
     first_name: str
     middle_name: str
+    group: str
     discipline: str
     session: str
     grade: int = Field(..., gt=0,le=5)
