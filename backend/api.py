@@ -277,13 +277,11 @@ async def put_grade(current_user: Annotated[User,Depends(get_current_user)],grad
                     detail="Сессия не найдена"
                 )
             try:
-                teacher = Teacher.get(
-                    (Teacher.user == current_user) &  
-                    (Teacher.discipline == discipline))
-            except Teacher.DoesNotExist:
+                admin = Admin.get(Admin.name == current_user)
+            except Admin.DoesNotExist:
                 raise HTTPException(
                     status_code=404,
-                    detail="Преподаватель не найден"
+                    detail="Сотрудник учебного отдела не найден"
                 )
             
             grade, created = Grade.get_or_create(
