@@ -7,5 +7,4 @@ from fastapi.security import OAuth2PasswordBearer
 OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="token")
 
 async def get_current_user(token: Annotated[str, Depends(OAUTH2_SCHEME)]) -> User:
-    user = await verify_jwt_token(token)
-    return user
+    return await verify_jwt_token(token)

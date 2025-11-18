@@ -14,8 +14,8 @@ async def create_jwt_token(data: Dict[str, Any], expires_minutes: int = 30) -> s
 async def verify_jwt_token(token: str) -> User:
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        user_id: int = payload.get("user_id") 
-        if not user_id:
+        user_id = payload.get("user_id") 
+        if not int(user_id):
             raise HTTPException(status_code=401, detail="Что-то с токеном")
         
         user = User.get(User.id == user_id)

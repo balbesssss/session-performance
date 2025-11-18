@@ -45,7 +45,7 @@ class Teacher(BaseModel):
 
 
 class Admin(BaseModel):
-    name = peewee.ForeignKeyField(User,unique=True)
+    user = peewee.ForeignKeyField(User,unique=True)
 
 
 class Group(BaseModel):
@@ -150,7 +150,7 @@ def create_test():
     admin_user.set_password("123")
     admin_user.save()
 
-    Admin.create(name=admin_user)
+    Admin.create(user=admin_user)
 
     session = SessionPeriod(
         name_session="Осенняя сессия 2024",

@@ -12,19 +12,15 @@ class TeacherOnlyName(BaseModel):
     first_name: str
     middle_name: str
 
+
 class TeacherInfo(TeacherOnlyName):
     password: str
 
 
-class UserRegister(BaseModel):
+class UserInfo(BaseModel):
     last_name: str
     first_name: str
     middle_name: str
-    password: str
-
-
-class UserInfo(BaseModel):
-    name: str
     password: str
     role: str
 
@@ -33,7 +29,7 @@ class InfoStudentResponse(UserInfo):
     group: str
 
 
-class StudentprofileCreate(BaseModel):
+class StudentCreate(BaseModel):
     last_name: str
     first_name: str
     middle_name: str
